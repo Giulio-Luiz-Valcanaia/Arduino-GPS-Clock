@@ -1,6 +1,6 @@
 # Arduino-GPS-Clock
 
-1. Instale a IDE do arduino pelo site oficial: https://www.arduino.cc/en/software;
+1. Instale a IDE do arduino pelo site oficial: https://www.arduino.cc/en/software
 2. Abra o arquivo .ino e instale as bibliotecas:
    
   a. https://www.pjrc.com/teensy/td_libs_AltSoftSerial.html
