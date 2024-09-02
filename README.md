@@ -22,8 +22,8 @@ COMO DEFINIR OS HORÁRIOS
 
 1. Vá até a linha 47
 2. Modifique o seguinte array conforme a necessidade:
+
    
-Alarm alarms[] = {
     //Formatação: {hora, minuto, {DOM, SEG, TER, QUA, QUI, SEX, SAB,}, tipo_do_alarme_2_ou_3, ativado_ou_desativado}
     // Matutino (SEG, TER, QUA, QUI, SEX) - Fundamental e Médio
     {7, 30, {false, true, true, true, true, true, false}, 2, true},  // 1ª aula
@@ -69,5 +69,4 @@ Alarm alarms[] = {
     {20, 40, {false, true, true, true, true, true, false}, 2, true},  // 4ª aula
     {21, 20, {false, true, true, true, true, true, false}, 2, true},  // 5ª aula
     {22, 0, {false, true, true, true, true, true, false}, 2, true}    // Fim da aula
-};
 
