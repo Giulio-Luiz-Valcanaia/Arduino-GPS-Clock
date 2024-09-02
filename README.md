@@ -2,13 +2,19 @@
 
 1. Instale a IDE do arduino pelo site oficial: https://www.arduino.cc/en/software;
 2. Abra o arquivo .ino e instale as bibliotecas:
+   
   a. https://www.pjrc.com/teensy/td_libs_AltSoftSerial.html
+
   b. https://github.com/johnrickman/LiquidCrystal_I2C
+  
   c. https://playground.arduino.cc/Code/Time/
+  
   d. https://github.com/JChristensen/Timezone
+  
   e. https://github.com/mikalhart/TinyGPSPlus
-3. Faça as modificações necessárias e compile o código;
-4. Faça upload do novo código.
+  
+4. Faça as modificações necessárias e compile o código;
+5. Faça upload do novo código.
 
 
 COMO DEFINIR OS HORÁRIOS
