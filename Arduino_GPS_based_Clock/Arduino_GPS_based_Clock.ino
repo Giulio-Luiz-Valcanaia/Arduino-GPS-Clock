@@ -197,7 +197,7 @@ void displaythetime(void) {
         lastDay = day(local);
         char dayOfWeekBuffer[21];
         char dateBuffer[21];
-        const char* daysOfTheWeek[8] = {"Err", "Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sabado"};
+        const char* daysOfTheWeek[8] = {"Err", "Domingo", "Segunda", "Terca", "Quarta", "Quinta", "Sexta", "Sabado"};
 
         // Formata e exibe o dia da semana
         sprintf(dayOfWeekBuffer, "%s", daysOfTheWeek[weekday(local)]);
@@ -238,7 +238,7 @@ void updateDisplayInfo() {
 
     // Exibe o dia da semana
     char dayOfWeekBuffer[21];
-    const char* daysOfTheWeek[8] = {"Err", "Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sabado"};
+    const char* daysOfTheWeek[8] = {"Err", "Domingo", "Segunda", "Terca", "Quarta", "Quinta", "Sexta", "Sabado"};
     sprintf(dayOfWeekBuffer, "%s", daysOfTheWeek[weekday(local)]);
     lcd.setCursor(centerTextPosition(dayOfWeekBuffer, 20), 1);
     lcd.print(dayOfWeekBuffer);
