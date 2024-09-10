@@ -24,12 +24,84 @@ Timezone brasiliaTimezone(BRT, BRT);
 
 // time variables
 time_t local, utc, prev_set;
-int timesetinterval = 30; //set microcontroller time every 30 seconds
+int timesetinterval = 5; //set microcontroller time every 5 seconds
+
+// Função para centralizar texto na tela LCD
+int centerTextPosition(const char* text, int width) {
+  int len = strlen(text);  // Obtém o comprimento do texto
+  int pos = (width - len) / 2;  // Calcula a posição central
+  return pos > 0 ? pos : 0;  // Garante que a posição não seja negativa
+}
+
+bool triggerActivated = true;
+
+struct Alarm {
+  int hour;
+  int minute;
+  bool days[7]; // Dias da semana para o alarme: Dom, Seg, Ter, Qua, Qui, Sex, Sáb
+  int outputPin; // Pino de saída para o alarme
+  bool triggered;
+};
+
+// Definir os alarmes desejados
+Alarm alarms[] = {
+    // Matutino (SEG, TER, QUA, QUI, SEX) - Fundamental e Médio
+    {7, 30, {false, true, true, true, true, true, false}, 2, true},  // 1ª aula
+    {8, 15, {false, true, true, true, true, true, false}, 2, true},  // 2ª aula
+    {9, 0, {false, true, true, true, true, true, false}, 2, true},   // Recreio
+    {9, 15, {false, true, true, true, true, true, false}, 2, true},  // 3ª aula
+    {10, 0, {false, true, true, true, true, true, false}, 2, true},  // 4ª aula
+    {10, 45, {false, true, true, true, true, true, false}, 2, true}, // 5ª aula
+    {11, 30, {false, true, true, true, true, true, false}, 2, true}, // Fim da aula
+
+    // Matutino de Quinta-Feira - Fundamental
+    {8, 8,  {false, false, false, false, true, false, false}, 3, true},  // 2ª aula
+    {8, 46, {false, false, false, false, true, false, false}, 3, true},  // 3ª aula
+    {9, 24, {false, false, false, false, true, false, false}, 3, true},  // Recreio
+    {9, 39, {false, false, false, false, true, false, false}, 3, true},  // 4ª aula
+    {10, 16, {false, false, false, false, true, false, false}, 3, true}, // 5ª aula
+    {10, 53, {false, false, false, false, true, false, false}, 3, true}, // 6ª aula
+
+    // Vespertino (SEG, TER, QUA, SEX) - Fundamental
+    {13, 0, {false, true, true, true, false, true, false}, 2, true},  // 1ª aula
+    {13, 45, {false, true, true, true, false, true, false}, 2, true}, // 2ª aula
+    {14, 30, {false, true, true, true, false, true, false}, 2, true}, // 3ª aula
+    {15, 15, {false, true, true, true, false, true, false}, 2, true}, // Recreio
+    {15, 30, {false, true, true, true, false, true, false}, 2, true}, // 4ª aula
+    {16, 15, {false, true, true, true, false, true, false}, 2, true}, // 5ª aula
+    {17, 0, {false, true, true, true, false, true, false}, 2, true},  // Fim da aula
+
+    // Vespertino de Quinta-Feira - Fundamental
+    {13, 0, {false, false, false, false, true, false, false}, 2, true},   // 1ª aula
+    {13, 37, {false, false, false, false, true, false, false}, 2, true},  // 2ª aula
+    {14, 14, {false, false, false, false, true, false, false}, 2, true},  // 3ª aula
+    {14, 51, {false, false, false, false, true, false, false}, 2, true},  // Recreio
+    {15, 6, {false, false, false, false, true, false, false}, 2, true},   // 4ª aula
+    {15, 44, {false, false, false, false, true, false, false}, 2, true},  // 5ª aula
+    {16, 22, {false, false, false, false, true, false, false}, 2, true},  // 6ª aula
+    {17, 0, {false, false, false, false, true, false, false}, 2, true},   // Fim da aula
+
+    // Noturno (SEG, TER, QUA, QUI, SEX)
+    {18, 30, {false, true, true, true, true, true, false}, 2, true},  // 1ª aula
+    {19, 10, {false, true, true, true, true, true, false}, 2, true},  // 2ª aula
+    {19, 50, {false, true, true, true, true, true, false}, 2, true},  // 3ª aula
+    {20, 30, {false, true, true, true, true, true, false}, 2, true},  // Recreio
+    {20, 40, {false, true, true, true, true, true, false}, 2, true},  // 4ª aula
+    {21, 20, {false, true, true, true, true, true, false}, 2, true},  // 5ª aula
+    {22, 0, {false, true, true, true, true, true, false}, 2, true}    // Fim da aula
+};
+
+const int numAlarms = sizeof(alarms) / sizeof(alarms[0]);
+
+
+
 
 void setup() {
   lcd.begin(20, 4);  // initialize the lcd for 20 chars 4 lines, turn on backlight
   lcd.clear();
   lcd.backlight();
+  pinMode(2, OUTPUT);  // Define o pino 2 como saída
+  pinMode(3, OUTPUT);  // Define o pino 2 como saída
 
   lcd.setCursor(0, 0); //Start at character 0 on line 0
   lcd.print(" Relogio esperando");
@@ -45,22 +117,43 @@ void setup() {
   }
   setthetime();
   prev_set = now();
+  lcd.clear();
 }
 
-void loop()
-{
-  if (now() - prev_set > timesetinterval && gps.time.isValid())  // set the microcontroller time every interval, only if there is a valid GPS time
-  {
-    setthetime();
-    prev_set = now();
-    //lcd.clear();
-    //lcd.setCursor(0, 0); //Start at character 0 on line 0
-    //lcd.print(" Horario ajustado");
-    //smartDelay(1000);
-  }
-  displaythetime();
-  smartDelay(1000);     // update the time every half second
+
+void loop() {
+    local = brasiliaTimezone.toLocal(now());  // Atualiza a hora local
+    int todayIndex = weekday(local) - 1;  // Converte a saída de weekday() para índice base-0
+
+    if (now() - prev_set > timesetinterval && gps.time.isValid()) {
+        setthetime();
+        prev_set = now();
+    }
+    displaythetime();
+
+    for (int i = 0; i < numAlarms; i++) {
+        // Verifica se o alarme deve disparar baseado na hora, minuto, dia da semana e se está ativado
+        if (hour(local) == alarms[i].hour && minute(local) == alarms[i].minute && alarms[i].days[todayIndex] && alarms[i].triggered) {
+            digitalWrite(alarms[i].outputPin, HIGH);  // Aciona o pino configurado para o alarme
+            lcd.clear();
+            lcd.setCursor(0, 0);
+            lcd.print("      ALARME!");
+            smartDelay(2000);  // Tempo de toque do alarme em ms
+            digitalWrite(alarms[i].outputPin, LOW);  // Desliga o pino
+            alarms[i].triggered = false;  // Desativa o gatilho do alarme
+            lcd.clear();
+            updateDisplayInfo();
+        }
+
+        // Reativa o gatilho se não for a hora exata do alarme
+        if (hour(local) != alarms[i].hour || minute(local) != alarms[i].minute) {
+            alarms[i].triggered = true;
+        }
+    }
+    smartDelay(1000);  // Atualiza a cada segundo
 }
+
+
 
 static void smartDelay(unsigned long ms)
 {
@@ -87,67 +180,80 @@ void setthetime(void)
   // Set Time from GPS data string
   setTime(Hour, Minute, Second, Day, Month, Year);  // set the time of the microcontroller to the UTC time from the GPS
 }
-void displaythetime(void)
-{
-  utc = now();  // read the time in the correct format to change via the TimeChangeRules
-  local = brasiliaTimezone.toLocal(utc);
-  lcd.clear();
 
-//display UTC time
-/*  lcd.setCursor(4, 2); //Start at character 0 on line 1
-  lcd.print("UTC:");
-  lcd.setCursor(8, 2);
-  // display UTC time from the GPS
-  if (hour(utc) < 10) // add a zero if minute is under 10
-    lcd.print("0");
-  lcd.print(hour(utc));
-  lcd.print(":");
-  if (minute(utc) < 10) // add a zero if minute is under 10
-    lcd.print("0");
-  lcd.print(minute(utc));
-  lcd.print(":");
-  if (second(utc) < 10) // add a zero if minute is under 10
-    lcd.print("0");
-  lcd.print(second(utc));
-  */
+void displaythetime(void) {
+    utc = now();  // Obtém a hora atual
+    local = brasiliaTimezone.toLocal(utc);  // Converte para hora local
 
-  // display the local time
-  lcd.setCursor(0, 0); //Start at character 0 on line 0
-  lcd.print("Hora:");
-  lcd.setCursor(6, 0);
+    // Atualiza a hora, minuto e segundo constantemente
+    char buffer[21];
+    sprintf(buffer, "Hora: %02d:%02d:%02d", hour(local), minute(local), second(local));
+    lcd.setCursor(centerTextPosition(buffer, 20), 0);
+    lcd.print(buffer);
 
-  if (hour(local) < 10) // add a zero if minute is under 10
-    lcd.print("0");
-  lcd.print(hour(local));
-  lcd.print(":");
-  if (minute(local) < 10) // add a zero if minute is under 10
-    lcd.print("0");
-  lcd.print(minute(local));
-  lcd.print(":");
-  if (second(local) < 10) // add a zero if minute is under 10
-    lcd.print("0");
-  lcd.print(second(local));
+    // Atualiza o dia da semana e a data em linhas separadas
+    static int lastDay = -1;
+    if (day(local) != lastDay) {
+        lastDay = day(local);
+        char dayOfWeekBuffer[21];
+        char dateBuffer[21];
+        const char* daysOfTheWeek[8] = {"Err", "Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sabado"};
 
+        // Formata e exibe o dia da semana
+        sprintf(dayOfWeekBuffer, "%s", daysOfTheWeek[weekday(local)]);
+        lcd.setCursor(0, 1); // Usa toda a linha para limpar quaisquer caracteres antigos
+        lcd.print("                    ");  // Limpa a linha antes de atualizar
+        lcd.setCursor(centerTextPosition(dayOfWeekBuffer, 20), 1);
+        lcd.print(dayOfWeekBuffer);
 
-  //Display satelites
-  lcd.setCursor(0, 3); //Start at character 0 on line 3
-  lcd.print("Satelites:");
-  lcd.setCursor(10, 3);
-  lcd.print(gps.satellites.value());  // display the number of satellites
+        // Formata e exibe a data
+        sprintf(dateBuffer, "%02d/%02d/%04d", day(local), month(local), year(local));
+        lcd.setCursor(0, 2); // Usa toda a linha para limpar quaisquer caracteres antigos
+        lcd.print("                    ");  // Limpa a linha antes de atualizar
+        lcd.setCursor(centerTextPosition(dateBuffer, 20), 2);
+        lcd.print(dateBuffer);
+    }
 
-
-  //Display day of the week
-  lcd.setCursor(0, 1); //Start at character 0 on line 1
-  const char* daysOfTheWeek[8] = {"Err", "Domingo", "Segunda", "Terca", "Quarta", "Quinta", "Sexta", "Sabado"};
-  lcd.print(daysOfTheWeek[weekday(local)]);
-
-  //Display today's date
-  lcd.setCursor(0, 2); 
-  if (day(local) < 10) lcd.print("0");  // Add leading zero if the day is less than 10
-  lcd.print(day(local));
-  lcd.print("/");
-  if (month(local) < 10) lcd.print("0");  // Add leading zero if the month is less than 10
-  lcd.print(month(local));
-  lcd.print("/");
-  lcd.print(year(local));  // Year is displayed as is
+    // Verifica e atualiza o número de satélites apenas quando mudar
+    static int lastSatCount = -1;
+    int currentSatCount = gps.satellites.value();
+    if (currentSatCount != lastSatCount) {
+        lastSatCount = currentSatCount;
+        char satelliteBuffer[21];
+        sprintf(satelliteBuffer, "Satelites: %d", currentSatCount);
+        lcd.setCursor(0, 3);  // Limpa toda a linha antes de atualizar
+        lcd.print("                    ");
+        lcd.setCursor(centerTextPosition(satelliteBuffer, 20), 3);
+        lcd.print(satelliteBuffer);
+    }
 }
+
+
+void updateDisplayInfo() {
+    // Atualiza e exibe a hora
+    char buffer[21];
+    sprintf(buffer, "Hora: %02d:%02d:%02d", hour(local), minute(local), second(local));
+    lcd.setCursor(centerTextPosition(buffer, 20), 0);
+    lcd.print(buffer);
+
+    // Exibe o dia da semana
+    char dayOfWeekBuffer[21];
+    const char* daysOfTheWeek[8] = {"Err", "Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sabado"};
+    sprintf(dayOfWeekBuffer, "%s", daysOfTheWeek[weekday(local)]);
+    lcd.setCursor(centerTextPosition(dayOfWeekBuffer, 20), 1);
+    lcd.print(dayOfWeekBuffer);
+
+    // Exibe a data
+    char dateBuffer[21];
+    sprintf(dateBuffer, "%02d/%02d/%04d", day(local), month(local), year(local));
+    lcd.setCursor(centerTextPosition(dateBuffer, 20), 2);
+    lcd.print(dateBuffer);
+
+    // Exibe o número de satélites
+    int currentSatCount = gps.satellites.value();
+    char satelliteBuffer[21];
+    sprintf(satelliteBuffer, "Satelites: %d", currentSatCount);
+    lcd.setCursor(centerTextPosition(satelliteBuffer, 20), 3);
+    lcd.print(satelliteBuffer);
+}
+
