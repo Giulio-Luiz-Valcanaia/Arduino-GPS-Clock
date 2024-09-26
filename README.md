@@ -22,6 +22,7 @@ COMO DEFINIR OS HORÁRIOS
 
 1. Vá até a linha 47
 2. Modifique o seguinte array conforme a necessidade:
+* 2 = campainha, 3 = sirene
 ```
     //Formatação: {hora, minuto, {DOM, SEG, TER, QUA, QUI, SEX, SAB,}, tipo_do_alarme_2_ou_3, ativado_ou_desativado}
     // Matutino (SEG, TER, QUA, QUI, SEX) - Fundamental e Médio
