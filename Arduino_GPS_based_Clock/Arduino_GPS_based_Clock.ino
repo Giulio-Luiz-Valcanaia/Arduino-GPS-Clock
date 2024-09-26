@@ -45,22 +45,31 @@ struct Alarm {
 
 // Definir os alarmes desejados
 Alarm alarms[] = {
-    // Matutino (SEG, TER, QUA, QUI, SEX) - Fundamental e Médio
-    {7, 30, {false, true, true, true, true, true, false}, 2, true},  // 1ª aula
-    {8, 15, {false, true, true, true, true, true, false}, 2, true},  // 2ª aula
-    {9, 0, {false, true, true, true, true, true, false}, 2, true},   // Recreio
-    {9, 15, {false, true, true, true, true, true, false}, 2, true},  // 3ª aula
-    {10, 0, {false, true, true, true, true, true, false}, 2, true},  // 4ª aula
-    {10, 45, {false, true, true, true, true, true, false}, 2, true}, // 5ª aula
-    {11, 30, {false, true, true, true, true, true, false}, 2, true}, // Fim da aula
+    // Matutino (SEG, TER, QUA, SEX) - Fundamental e Médio
+    {7, 30, {false, true, true, true, false, true, false}, 2, true},  // 1ª aula
+    {8, 15, {false, true, true, true, false, true, false}, 2, true},  // 2ª aula
+    {9, 0, {false, true, true, true, false, true, false}, 2, true},   // Recreio
+    {9, 15, {false, true, true, true, false, true, false}, 2, true},  // 3ª aula
+    {10, 0, {false, true, true, true, false, true, false}, 2, true},  // 4ª aula
+    {10, 45, {false, true, true, true, false, true, false}, 2, true}, // 5ª aula
+    {11, 30, {false, true, true, true, false, true, false}, 2, true}, // Fim da aula
 
     // Matutino de Quinta-Feira - Fundamental
-    {8, 8,  {false, false, false, false, true, false, false}, 3, true},  // 2ª aula
-    {8, 46, {false, false, false, false, true, false, false}, 3, true},  // 3ª aula
-    {9, 24, {false, false, false, false, true, false, false}, 3, true},  // Recreio
-    {9, 39, {false, false, false, false, true, false, false}, 3, true},  // 4ª aula
-    {10, 16, {false, false, false, false, true, false, false}, 3, true}, // 5ª aula
-    {10, 53, {false, false, false, false, true, false, false}, 3, true}, // 6ª aula
+    {7, 30, {false, false, false, false, true, false, false}, 2, true},  // 1ª aula
+    {8, 8,  {false, false, false, false, true, false, false}, 2, true},  // 2ª aula
+    {8, 46, {false, false, false, false, true, false, false}, 2, true},  // 3ª aula
+    {9, 24, {false, false, false, false, true, false, false}, 2, true},  // Recreio
+    {9, 39, {false, false, false, false, true, false, false}, 2, true},  // 4ª aula
+    {10, 16, {false, false, false, false, true, false, false}, 2, true}, // 5ª aula
+    {10, 53, {false, false, false, false, true, false, false}, 2, true}, // 6ª aula
+    {11, 30, {false, false, false, false, true, false, false}, 2, true}, // Fim da aula
+
+    // Matutino de Quinta-Feira - Médio 
+    {8, 15, {false, false, false, false, true, false, false}, 3, true},  // 2ª aula
+    {9, 0, {false, false, false, false, true, false, false}, 3, true},   // Recreio
+    {9, 15, {false, false, false, false, true, false, false}, 3, true},  // 3ª aula
+    {10, 0, {false, false, false, false, true, false, false}, 3, true},  // 4ª aula
+    {10, 45, {false, false, false, false, true, false, false}, 3, true}, // 5ª aula
 
     // Vespertino (SEG, TER, QUA, SEX) - Fundamental
     {13, 0, {false, true, true, true, false, true, false}, 2, true},  // 1ª aula
@@ -85,8 +94,8 @@ Alarm alarms[] = {
     {18, 30, {false, true, true, true, true, true, false}, 2, true},  // 1ª aula
     {19, 10, {false, true, true, true, true, true, false}, 2, true},  // 2ª aula
     {19, 50, {false, true, true, true, true, true, false}, 2, true},  // 3ª aula
-    {20, 30, {false, true, true, true, true, true, false}, 2, true},  // Recreio
-    {20, 40, {false, true, true, true, true, true, false}, 2, true},  // 4ª aula
+    {20, 27, {false, true, true, true, true, true, false}, 2, true},  // Recreio
+    {20, 42, {false, true, true, true, true, true, false}, 2, true},  // 4ª aula
     {21, 20, {false, true, true, true, true, true, false}, 2, true},  // 5ª aula
     {22, 0, {false, true, true, true, true, true, false}, 2, true}    // Fim da aula
 };
@@ -138,7 +147,7 @@ void loop() {
             lcd.clear();
             lcd.setCursor(0, 0);
             lcd.print("      ALARME!");
-            smartDelay(2000);  // Tempo de toque do alarme em ms
+            smartDelay(4000);  // Tempo de toque do alarme em ms
             digitalWrite(alarms[i].outputPin, LOW);  // Desliga o pino
             alarms[i].triggered = false;  // Desativa o gatilho do alarme
             lcd.clear();
@@ -220,7 +229,14 @@ void displaythetime(void) {
     if (currentSatCount != lastSatCount) {
         lastSatCount = currentSatCount;
         char satelliteBuffer[21];
-        sprintf(satelliteBuffer, "Satelites: %d", currentSatCount);
+
+        //Se o número de satélites for menor que 9 adiciona um espaço depois dos dois pontos
+        if(currentSatCount < 10) {
+          sprintf(satelliteBuffer, "Satelites: %d", currentSatCount);
+        } else {
+          sprintf(satelliteBuffer, "Satelites:%d", currentSatCount);
+        }
+
         lcd.setCursor(0, 3);  // Limpa toda a linha antes de atualizar
         lcd.print("                    ");
         lcd.setCursor(centerTextPosition(satelliteBuffer, 20), 3);
